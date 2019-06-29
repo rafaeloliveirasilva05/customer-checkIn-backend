@@ -5,7 +5,6 @@ const User = require('../models/user')
 const router = express.Router()
 
 router.post('/register', async (req, res) => {
-
   try {
     if (await User.findOne({ 'email': req.body.email }))
       return res.status(400).send({ error: 'User alredy exists ' })
@@ -22,7 +21,9 @@ router.post('/register', async (req, res) => {
 router.get('/getUsers', async (req, res) => {
   try {
     const users = await User.find({})
-    return res.send({ 'users': users })
+
+    user.password = undefined
+    return res.send(users)
   } catch (error) {
     return res.status(400).send({ error: 'Registration failed' })
   }
