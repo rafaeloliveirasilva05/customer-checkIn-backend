@@ -28,7 +28,7 @@ router.get('/listClients', async (req, res) => {
   const { rowsPerPage, numberPage } = req.query
 
   try {
-    const perPage = rowsPerPage && rowsPerPage > 0 ? parseInt(rowsPerPage) : 1
+    const perPage = rowsPerPage && rowsPerPage > 0 ? parseInt(rowsPerPage) : 100
     const page = numberPage && numberPage > 0 ? parseInt(numberPage) : 1
 
     Client
