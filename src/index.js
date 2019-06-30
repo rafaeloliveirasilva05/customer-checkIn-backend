@@ -12,4 +12,4 @@ app.use(bodyParser.urlencoded({extended: false}))
 require('./app/controllers/authController')(app)
 require('./app/controllers/clientController')(app)
 
-app.listen(3001)
+app.listen(process.env.PORT || 3000)
