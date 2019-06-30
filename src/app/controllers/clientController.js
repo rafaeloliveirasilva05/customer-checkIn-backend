@@ -7,10 +7,16 @@ const router = express.Router()
 router.use(authMiddleware)
 
 router.post('/saveClientsDataJson', async (req, res) => {
-  const { dataClients } = req.body
+  const { data } = req.body
 
   try {
-    dataClients.forEach(async data => await Client.create(data))
+    data.forEach(async data => await Client.create({
+      ...data,
+      name: data.nome,
+      roomType: data.tipo_quarto,
+      gender: data.tipo,
+      roomNumber: data.quarto
+    }))
     return res.send({ 'save': 'ok' })
 
   } catch (error) {
@@ -19,12 +25,15 @@ router.post('/saveClientsDataJson', async (req, res) => {
 })
 
 router.get('/listClients', async (req, res) => {
+  const { rowsPerPage, numberPage } = req.query
+
   try {
-    const perPage = 9
-    const page = req.params.page || 1
+    const perPage = rowsPerPage && rowsPerPage > 0 ? parseInt(rowsPerPage) : 1
+    const page = numberPage && numberPage > 0 ? parseInt(numberPage) : 1
 
     Client
       .find({})
+      .populate('user')
       .skip((perPage * page) - perPage)
       .limit(perPage)
       .exec(function (err, dataClients) {
@@ -32,10 +41,12 @@ router.get('/listClients', async (req, res) => {
           if (err)
             return res.status(400).send({ error: 'Failed to show clients' })
 
-          return res.send({
-            result: { dataClients },
-            total: count
+          dataClients.forEach((client) => {
+            if (client.user)
+              client.user.password = undefined
           })
+
+          return res.send({ result: { dataClients }, total: count })
         })
       })
 
@@ -48,8 +59,11 @@ router.get('/getClient/:cpf', async (req, res) => {
   const { cpf } = req.params
 
   try {
-    const client = await Client.findOne({ cpf })
-    return res.send({ client })
+    const dataClient = await Client.findOne({ cpf }).populate('user')
+    if (dataClient.user)
+      dataClient.user.password = undefined
+
+    return res.send({ dataClient })
 
   } catch (error) {
     return res.status(400).send({ error: 'Failed to show client' })
@@ -58,11 +72,11 @@ router.get('/getClient/:cpf', async (req, res) => {
 
 router.patch('/checkIn/:cpf', async (req, res) => {
   const { cpf } = req.params
-  const { presenceRecord } = req.body
 
   try {
-    const client = await Client.findOneAndUpdate({ cpf }, { presenceRecord })
-    return res.send({ client })
+    const dataClient = await Client.findOneAndUpdate({ cpf }, { ...req.body, user: req.userId }, { new: true })
+
+    return res.send({ dataClient })
 
   } catch (error) {
     return res.status(400).send({ error: 'Failed to check in' })

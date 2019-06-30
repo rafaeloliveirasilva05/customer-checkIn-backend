@@ -24,7 +24,7 @@ router.post('/register', async (req, res) => {
 
     user.password = undefined
 
-    return res.send({ user, token: generationToken({ cpf: user.cpf }) })
+    return res.send({ user, token: generationToken({ userId: user._id }) })
 
   } catch (error) {
     return res.status(400).send({ error: 'Registration failed' })
@@ -48,15 +48,14 @@ router.post('/authenticate', async (req, res) => {
 
   try {
     const user = await User.findOne({ email }).select('+password')
-
+   
     if (!user)
       return res.status(400).send({ error: 'User not found' })
 
     if (!await bcrypt.compare(password, user.password))
       return res.status(400).send({ error: 'Invalid password' })
 
-
-    return res.send({ user, token: generationToken({ cpf: user.cpf }) })
+    return res.send({ user, token: generationToken({ id: user.id }) })
 
   } catch (error) {
     return res.status(400).send({ error: 'Registration failed' })

@@ -18,6 +18,11 @@ const ClientSchema = new mongoose.Schema({
   roomNumber: {
     type: String
   },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    default: null,
+    ref: 'User'
+  },
   presenceRecord: {
     type: Boolean,
     default: false
