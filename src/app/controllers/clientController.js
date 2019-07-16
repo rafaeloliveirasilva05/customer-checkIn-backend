@@ -4,7 +4,7 @@ const Client = require('../models/client')
 const authMiddleware = require('../middlewares/auth')
 
 const router = express.Router()
-router.use(authMiddleware)
+// router.use(authMiddleware)
 
 router.post('/saveClientsDataJson', async (req, res) => {
   const { data } = req.body
