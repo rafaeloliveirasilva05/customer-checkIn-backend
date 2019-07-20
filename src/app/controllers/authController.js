@@ -35,9 +35,15 @@ router.get('/getUsers', async (req, res) => {
   try {
     const users = await User.find({})
 
-    user.password = undefined
+    const userWithoutPassword = users.map((user) => ({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      password: undefined,
+      createdAt: user.createdAt
+    }))
 
-    return res.send(users)
+    return res.send(userWithoutPassword)
   } catch (error) {
     return res.status(400).send({ error: 'Registration failed' })
   }
@@ -48,7 +54,7 @@ router.post('/authenticate', async (req, res) => {
 
   try {
     const user = await User.findOne({ email }).select('+password')
-   
+
     if (!user)
       return res.status(400).send({ error: 'User not found' })
 
