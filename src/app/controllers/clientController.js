@@ -14,7 +14,7 @@ router.post('/saveClientsDataJson', async (req, res) => {
   try {
     data.forEach(async data => {
 
-      let cpf = data.cpf.replace(/[( )\/\.\-]+/g,'')
+      let cpf = data.cpf.replace(/[( )\/\.\-]+/g, '')
 
       await Client.create({
         cpf,
@@ -88,6 +88,22 @@ router.patch('/checkIn/:cpf', async (req, res) => {
   } catch (error) {
     return res.status(400).send({ error: 'Failed to check in' })
   }
+})
+
+router.get('/presenceData', async (req, res) => {
+  const customerPresenceData = await Promise.all([
+    Client.where({ 'gender': 'FEMININO' }).countDocuments(),
+    Client.where({ 'gender': 'MASCULINO' }).countDocuments(),
+    Client.where({ 'presenceRecord': 'true', 'gender': 'FEMININO' }).countDocuments(),
+    Client.where({ 'presenceRecord': 'true', 'gender': 'MASCULINO' }).countDocuments()
+  ])
+
+  return res.send({ 
+    'femaleTotal': customerPresenceData[0],
+    'maleTotal': customerPresenceData[1],
+    'femalePresence': customerPresenceData[2],
+    'malePresence': customerPresenceData[3],
+  })
 })
 
 module.exports = app => app.use('/client', router)
