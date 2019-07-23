@@ -9,14 +9,21 @@ const router = express.Router()
 router.post('/saveClientsDataJson', async (req, res) => {
   const { data } = req.body
 
+  Client.collection.drop()
+
   try {
-    data.forEach(async data => await Client.create({
-      ...data,
-      name: data.nome,
-      roomType: data.tipo_quarto,
-      gender: data.tipo,
-      roomNumber: data.quarto
-    }))
+    data.forEach(async data => {
+
+      let cpf = data.cpf.replace(/[( )\/\.\-]+/g,'')
+
+      await Client.create({
+        cpf,
+        name: data.nome,
+        roomType: data.tipo_quarto,
+        gender: data.tipo,
+        roomNumber: data.quarto
+      })
+    })
     return res.send({ 'save': 'ok' })
 
   } catch (error) {
