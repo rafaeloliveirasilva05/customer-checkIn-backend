@@ -106,4 +106,10 @@ router.get('/presenceData', async (req, res) => {
   })
 })
 
+router.get('/getDataAllClients', async (req, res) => {
+  const resp = await Client.find()
+
+  return res.send({resp})
+})
+
 module.exports = app => app.use('/client', router)
