@@ -4,19 +4,26 @@ const Client = require('../models/client')
 const authMiddleware = require('../middlewares/auth')
 
 const router = express.Router()
-router.use(authMiddleware)
+// router.use(authMiddleware)
 
 router.post('/saveClientsDataJson', async (req, res) => {
   const { data } = req.body
 
+  Client.collection.drop()
+
   try {
-    data.forEach(async data => await Client.create({
-      ...data,
-      name: data.nome,
-      roomType: data.tipo_quarto,
-      gender: data.tipo,
-      roomNumber: data.quarto
-    }))
+    data.forEach(async data => {
+
+      let cpf = data.cpf.replace(/[( )\/\.\-]+/g, '')
+
+      await Client.create({
+        cpf,
+        name: data.nome,
+        roomType: data.tipo_quarto,
+        gender: data.tipo,
+        roomNumber: data.quarto
+      })
+    })
     return res.send({ 'save': 'ok' })
 
   } catch (error) {
@@ -81,6 +88,28 @@ router.patch('/checkIn/:cpf', async (req, res) => {
   } catch (error) {
     return res.status(400).send({ error: 'Failed to check in' })
   }
+})
+
+router.get('/presenceData', async (req, res) => {
+  const customerPresenceData = await Promise.all([
+    Client.where({ 'gender': 'FEMININO' }).countDocuments(),
+    Client.where({ 'gender': 'MASCULINO' }).countDocuments(),
+    Client.where({ 'presenceRecord': 'true', 'gender': 'FEMININO' }).countDocuments(),
+    Client.where({ 'presenceRecord': 'true', 'gender': 'MASCULINO' }).countDocuments()
+  ])
+
+  return res.send({ 
+    'femaleTotal': customerPresenceData[0],
+    'maleTotal': customerPresenceData[1],
+    'femalePresence': customerPresenceData[2],
+    'malePresence': customerPresenceData[3],
+  })
+})
+
+router.get('/getDataAllClients', async (req, res) => {
+  const resp = await Client.find()
+
+  return res.send({resp})
 })
 
 module.exports = app => app.use('/client', router)
